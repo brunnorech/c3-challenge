@@ -1,1 +1,73 @@
 // TODO
+.postContent {
+  max-width: 720px;
+  margin-top: 3rem;
+  cursor: pointer;
+//   &:first-child {
+//     margin-top: 4rem;
+//   }
+
+  & + div:last-child {
+    margin-bottom: 4rem;
+  }
+
+  h1 {
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    font-size: 1.75rem;
+    line-height: 2.1rem;
+    color: var(--heading);
+  }
+
+  p {
+    margin-bottom: 1.5rem;
+    font-weight: 400;
+    font-size: 1.125rem;
+    line-height: 1.37rem;
+    color: var(--body);
+  }
+
+  span {
+    font-size: 0.87rem;
+    color: var(--info);
+    & + span {
+      margin-left: 2rem;
+    }
+  }
+}
+
+.containerButton {
+  margin-bottom: 5rem;
+  margin-top: 4rem;
+  button {
+    border: none;
+    background-color: transparent;
+    outline: 0;
+
+    span {
+      color: var(--highlight);
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 1.125rem;
+      line-height: 1.37rem;
+    }
+  }
+}
+
+.infoContainer {
+    display: flex;
+    flex-direction:row;
+    align-items: center;
+
+    & > div {
+        display: flex;
+        align-items: center;
+    }
+
+    & > div > span {
+        margin-left: 0.5rem;
+    }
+    & > div:last-child{
+        margin-left: 2rem;
+    }
+}
