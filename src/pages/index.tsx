@@ -34,23 +34,26 @@ interface HomeProps {
 
 export default function Home({ postsPagination }: HomeProps) {
   // TODO
+  console.log({ postsPagination }, '');
+  const [posts, setPosts] = useState(postsPagination.results);
+  const [nextPage, setNextPage] = useState(postsPagination.next_page);
+  const [loading, setLoading] = useState(null);
 
-  const [posts, setPosts] = useState([]);
-  const [nextPage, setNextPage] = useState(null);
-
-  useEffect(() => {
-    setPosts(postsPagination.results);
-    setNextPage(postsPagination.next_page);
-  }, [postsPagination]);
+  if (!postsPagination?.results.length) return null;
 
   const handleNextPage = () => {
+    setLoading(true);
+
     fetch(nextPage)
       .then(res => res.json())
       .then(data => {
-        const postsData = formatPosts(data);
-
         setNextPage(data.next_page);
-        setPosts(prev => [...prev, ...postsData]);
+        setPosts(prev => [...prev, ...(data.results || [])]);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setNextPage(null);
       });
   };
 
@@ -58,22 +61,31 @@ export default function Home({ postsPagination }: HomeProps) {
     <>
       <Header />
       <section className={commonStyles.container}>
-        {(posts || []).map(post => (
-          <Link
-            key={post.uid}
-            href={{
-              pathname: '/post/[slug]',
-              query: { slug: post.uid },
-            }}
-          >
-            <div className={styles.postContent}>
-              <h1>{post.data.title}</h1>
-              <p>{post.data.subtitle}</p>
+        {(posts || []).map(post => {
+
+          return (
+            <article key={post.uid} className={styles.postContent}>
+              <Link href={`/post/${post.uid}`}>
+                <h1>
+                  {Array.isArray(post.data?.title)
+                    ? post.data?.title?.find(title => title.text).text
+                    : post.data?.title}
+                </h1>
+              </Link>
+              <p>
+                {Array.isArray(post.data?.subtitle)
+                  ? post.data?.subtitle?.find(subtitle => subtitle.text).text
+                  : post.data?.subtitle}
+              </p>
 
               <div className={styles.infoContainer}>
                 <div>
                   <FiCalendar />
-                  <span>{post.data.author}</span>
+                  <span>
+                    {Array.isArray(post.data?.author)
+                      ? post.data?.author?.find(author => author.text).text
+                      : post.data?.author}
+                  </span>
                 </div>
 
                 <div>
@@ -89,40 +101,25 @@ export default function Home({ postsPagination }: HomeProps) {
                   </span>
                 </div>
               </div>
-            </div>
-          </Link>
-        ))}
+            </article>
+          );
+        })}
 
-        {nextPage && (
+        {nextPage !== null && (
           <div className={styles.containerButton}>
-            <button onClick={() => handleNextPage()}>
-              <span>Carregar mais posts</span>
-            </button>
+              <button
+                onClick={() => handleNextPage()}
+                disabled={loading || !nextPage}
+                type="submit"
+              >
+                <span>Carregar mais posts</span>
+              </button>
           </div>
         )}
       </section>
     </>
   );
 }
-
-const formatPosts = posts => {
-  return posts.results.map(post => {
-    return {
-      uid: post.uid,
-      first_publication_date: post.first_publication_date,
-      data: {
-        title:
-          post.data.title.find(title => title.type === 'paragraph').text ?? '',
-        subtitle:
-          post.data.subtitle.find(subtitle => subtitle.type === 'paragraph')
-            .text ?? '',
-        author:
-          post.data.author.find(author => author.type === 'paragraph').text ??
-          '',
-      },
-    };
-  });
-};
 
 export const getStaticProps: GetStaticProps = async () => {
   const prismic = getPrismicClient();
@@ -135,12 +132,10 @@ export const getStaticProps: GetStaticProps = async () => {
     }
   );
 
-  const posts = formatPosts(postsResponse);
-
   return {
     props: {
       postsPagination: {
-        results: postsResponse,
+        results: postsResponse.results,
         next_page: postsResponse.next_page,
       },
     },

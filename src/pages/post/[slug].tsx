@@ -67,7 +67,11 @@ export default function Post({ post }: PostProps) {
         <div className={styles.postContainer}>
           <div className={`${styles.postContent} ${styles.postInfo}`}>
             {/* <h1>{(post.data.title.find(t => t.type === 'paragraph')text ?? ""}</h1> */}
-            <h1>{String(post.data.title)}</h1>
+            <h1>
+              {Array.isArray(post.data.title)
+                ? post.data.title.find(title => title.text).text
+                : post.data.title}
+            </h1>
             <div className={styles.containerInfos}>
               <FiCalendar />
               <span>
@@ -76,14 +80,22 @@ export default function Post({ post }: PostProps) {
                 })}
               </span>
               <FiUser />
-              <span>{String(post.data.author)}</span>
+              <span>
+                {Array.isArray(post.data.author)
+                  ? post.data.author.find(author => author.text).text
+                  : post.data.author}
+              </span>
               <FiClock />
               <span>{estimatedTime} min</span>
             </div>
           </div>
           {(post.data.content || []).map((content, index) => (
             <div className={styles.postContent} key={index}>
-              <h2>{String(content.heading)}</h2>
+              <h2>
+                {Array.isArray(content.heading)
+                  ? content.heading.find(heading => heading.text).text
+                  : content.heading}
+              </h2>
 
               <>
                 {content.body.map((b, index) => (
@@ -101,7 +113,6 @@ export default function Post({ post }: PostProps) {
 }
 
 const formatPost = response => {
-  console.log({ author: JSON.stringify(response.data.author) }, 'reds1');
 
   const author = response.data.author[0].text;
   const post = {
@@ -154,8 +165,6 @@ export const getStaticProps: GetStaticProps = async context => {
   const slug = context.params?.slug || '';
 
   const response = await prismic.getByUID('posts', String(slug), {});
-
-  const post = formatPost(response);
 
   return {
     props: {
