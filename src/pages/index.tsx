@@ -1,4 +1,6 @@
 import { GetStaticProps } from 'next';
+import Link from 'next/link';
+import Header from '../components/Header';
 
 import { getPrismicClient } from '../services/prismic';
 import Prismic from '@prismicio/client';
@@ -47,42 +49,59 @@ export default function Home({ postsPagination }: HomeProps) {
       .then(data => {
         const postsData = formatPosts(data);
 
-        const merge = [...posts, ...postsData];
-
         setNextPage(data.next_page);
         setPosts(prev => [...prev, ...postsData]);
       });
   };
 
   return (
-    <section className={commonStyles.postContainer}>
-      {(posts || []).map(post => (
-        <div key={post.uid} className={styles.postContent}>
-          <h1>{post.data.title}</h1>
-          <p>{post.data.subtitle}</p>
+    <>
+      <Header />
+      <section className={commonStyles.container}>
+        {(posts || []).map(post => (
+          <Link
+            key={post.uid}
+            href={{
+              pathname: '/post/[slug]',
+              query: { slug: post.uid },
+            }}
+          >
+            <div className={styles.postContent}>
+              <h1>{post.data.title}</h1>
+              <p>{post.data.subtitle}</p>
 
-          <div className={styles.infoContainer}>
-            <div>
-              <FiCalendar />
-              <span>{post.data.author}</span>
-            </div>
+              <div className={styles.infoContainer}>
+                <div>
+                  <FiCalendar />
+                  <span>{post.data.author}</span>
+                </div>
 
-            <div>
-              <FiUser />
-              <span>{post.first_publication_date}</span>
+                <div>
+                  <FiUser />
+                  <span>
+                    {format(
+                      new Date(post.first_publication_date),
+                      'dd MMM yyyy',
+                      {
+                        locale: ptBR,
+                      }
+                    )}
+                  </span>
+                </div>
+              </div>
             </div>
+          </Link>
+        ))}
+
+        {nextPage && (
+          <div className={styles.containerButton}>
+            <button onClick={() => handleNextPage()}>
+              <span>Carregar mais posts</span>
+            </button>
           </div>
-        </div>
-      ))}
-
-      {nextPage && (
-        <div className={styles.containerButton}>
-          <button onClick={() => handleNextPage()}>
-            <span>Carregar mais posts</span>
-          </button>
-        </div>
-      )}
-    </section>
+        )}
+      </section>
+    </>
   );
 }
 
@@ -90,12 +109,7 @@ const formatPosts = posts => {
   return posts.results.map(post => {
     return {
       uid: post.uid,
-      first_publication_date: format(
-        new Date(post.last_publication_date),
-        "'Dia' dd 'de' MMMM 'de' yyyy'", {
-          locale: ptBR
-        }
-      ),
+      first_publication_date: post.first_publication_date,
       data: {
         title:
           post.data.title.find(title => title.type === 'paragraph').text ?? '',
@@ -126,7 +140,7 @@ export const getStaticProps: GetStaticProps = async () => {
   return {
     props: {
       postsPagination: {
-        results: posts,
+        results: postsResponse,
         next_page: postsResponse.next_page,
       },
     },

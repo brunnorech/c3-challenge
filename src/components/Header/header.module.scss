@@ -4,11 +4,31 @@
   margin-bottom: 1rem;
 }
 
+.headerPost {
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+}
+
+.headerContentPost {
+  max-width: 720px;
+  height: 6.5rem;
+  margin: 2rem auto;
+  padding: 2rem 0.5rem;
+
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+}
+
 .headerContent {
   max-width: 1120px;
   height: 6.5rem;
   margin: 2rem auto;
   padding: 2rem 1.5rem;
+
+  width: 100%;
 
 
   display: flex;
